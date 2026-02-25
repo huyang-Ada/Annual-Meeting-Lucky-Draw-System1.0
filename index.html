@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>年会抽奖系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 3em;
+            margin: 30px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #e60073; }
+            to { text-shadow: 0 0 20px #fff, 0 0 30px #ff4da6, 0 0 40px #ff4da6; }
+        }
+
+        .control-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .prize-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .prize-btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .prize-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .prize-btn.active {
+            background: #ff4757;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+        }
+
+        .prize-btn.completed {
+            background: #2ed573;
+            cursor: not-allowed;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: #fff;
+        }
+
+        .btn-start:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-start:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: #fff;
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: #fff;
+        }
+
+        .display-area {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 30px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .current-prize {
+            font-size: 2.5em;
+            color: #ff4757;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .rolling-names {
+            font-size: 3em;
+            color: #2f3542;
+            font-weight: bold;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .winner-name {
+            animation: bounce 0.5s;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .results-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .results-title {
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .prize-result {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .prize-result h3 {
+            color: #ffd700;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .prize-result .winners {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .winner-tag {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .stats {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .file-upload {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .file-upload input {
+            display: none;
+        }
+
+        .file-upload label {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+
+        .file-upload label:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 年会抽奖系统 🎉</h1>
+
+        <div class="control-panel">
+            <div class="file-upload">
+                <label for="fileInput">📁 导入人员名单（JSON格式）</label>
+                <input type="file" id="fileInput" accept=".json">
+                <span id="fileStatus" style="margin-left: 15px;"></span>
+            </div>
+
+            <div class="prize-selector" id="prizeSelector"></div>
+
+            <div class="action-buttons">
+                <button class="btn btn-start" id="startBtn" onclick="startLottery()">开始抽奖</button>
+                <button class="btn btn-reset" onclick="resetLottery()">重置抽奖</button>
+                <button class="btn btn-export" onclick="exportResults()">导出结果</button>
+            </div>
+        </div>
+
+        <div class="display-area">
+            <div class="current-prize" id="currentPrize">请选择奖项</div>
+            <div class="rolling-names" id="rollingNames"></div>
+        </div>
+
+        <div class="results-panel">
+            <h2 class="results-title">🏆 中奖名单 🏆</h2>
+            <div id="resultsContainer"></div>
+            <div class="stats" id="stats"></div>
+        </div>
+    </div>
+
+    <script>
+        // 奖项配置
+        const prizeConfig = [
+            { level: 1, name: '一等奖', count: 2, color: '#ff4757' },
+            { level: 2, name: '二等奖', count: 3, color: '#ff6348' },
+            { level: 3, name: '三等奖', count: 4, color: '#ff7f50' },
+            { level: 4, name: '四等奖', count: 5, color: '#ffa502' },
+            { level: 5, name: '五等奖', count: 6, color: '#ffb142' },
+            { level: 6, name: '六等奖', count: 7, color: '#ffd93d' },
+            { level: 7, name: '七等奖', count: 8, color: '#6bcf7f' },
+            { level: 8, name: '八等奖', count: 9, color: '#4bcffa' },
+            { level: 9, name: '九等奖', count: 10, color: '#5f27cd' },
+            { level: 10, name: '十等奖', count: 20, color: '#c44569' }
+        ];
+
+        // 默认人员名单（100人）
+        let allParticipants = [];
+        for (let i = 1; i <= 100; i++) {
+            allParticipants.push(`员工${i.toString().padStart(3, '0')}`);
+        }
+
+        let availableParticipants = [...allParticipants];
+        let currentPrizeIndex = null;
+        let isRolling = false;
+        let rollingInterval = null;
+        let results = {};
+
+        // 初始化
+        function init() {
+            renderPrizeButtons();
+            updateResults();
+            updateStats();
+        }
+
+        // 渲染奖项按钮
+        function renderPrizeButtons() {
+            const container = document.getElementById('prizeSelector');
+            container.innerHTML = '';
+
+            prizeConfig.forEach((prize, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'prize-btn';
+                btn.textContent = `${prize.name} (${prize.count}人)`;
+                btn.onclick = () => selectPrize(index);
+
+                if (results[prize.level] && results[prize.level].length === prize.count) {
+                    btn.classList.add('completed');
+                    btn.disabled = true;
+                }
+
+                container.appendChild(btn);
+            });
+        }
+
+        // 选择奖项
+        function selectPrize(index) {
+            if (isRolling) return;
+
+            currentPrizeIndex = index;
+            const prize = prizeConfig[index];
+
+            // 更新按钮状态
+            document.querySelectorAll('.prize-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+
+            document.getElementById('currentPrize').textContent =
+                `${prize.name} - 抽取 ${prize.count} 人`;
+            document.getElementById('rollingNames').textContent = '';
+            document.getElementById('startBtn').disabled = false;
+        }
+
+        // 开始抽奖
+        function startLottery() {
+            if (currentPrizeIndex === null) {
+                alert('请先选择奖项！');
+                return;
+            }
+
+            if (isRolling) {
+                stopLottery();
+                return;
+            }
+
+            const prize = prizeConfig[currentPrizeIndex];
+
+            if (availableParticipants.length < prize.count) {
+                alert('剩余人数不足！');
+                return;
+            }
+
+            isRolling = true;
+            document.getElementById('startBtn').textContent = '停止';
+
+            // 滚动显示随机名字
+            rollingInterval = setInterval(() => {
+                const randomNames = [];
+                for (let i = 0; i < prize.count; i++) {
+                    const randomIndex = Math.floor(Math.random() * availableParticipants.length);
+                    randomNames.push(availableParticipants[randomIndex]);
+                }
+                document.getElementById('rollingNames').innerHTML =
+                    randomNames.map(name => `<span class="winner-name">${name}</span>`).join('');
+            }, 100);
+        }
+
+        // 停止抽奖
+        function stopLottery() {
+            if (!isRolling) return;
+
+            clearInterval(rollingInterval);
+            isRolling = false;
+            document.getElementById('startBtn').textContent = '开始抽奖';
+
+            const prize = prizeConfig[currentPrizeIndex];
+            const winners = [];
+
+            // 随机抽取获奖者
+            for (let i = 0; i < prize.count; i++) {
+                const randomIndex = Math.floor(Math.random() * availableParticipants.length);
+                winners.push(availableParticipants[randomIndex]);
+                availableParticipants.splice(randomIndex, 1);
+            }
+
+            // 保存结果
+            results[prize.level] = winners;
+
+            // 显示获奖者
+            document.getElementById('rollingNames').innerHTML =
+                winners.map(name => `<span class="winner-name">${name}</span>`).join('');
+
+            // 更新界面
+            renderPrizeButtons();
+            updateResults();
+            updateStats();
+
+            // 重置选择
+            setTimeout(() => {
+                currentPrizeIndex = null;
+                document.querySelectorAll('.prize-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.getElementById('currentPrize').textContent = '请选择下一个奖项';
+                document.getElementById('startBtn').disabled = true;
+            }, 3000);
+        }
+
+        // 更新结果显示
+        function updateResults() {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+
+            prizeConfig.forEach(prize => {
+                if (results[prize.level] && results[prize.level].length > 0) {
+                    const div = document.createElement('div');
+                    div.className = 'prize-result';
+                    div.innerHTML = `
+                        <h3>${prize.name} (${results[prize.level].length}/${prize.count}人)</h3>
+                        <div class="winners">
+                            ${results[prize.level].map(name =>
+                                `<span class="winner-tag">${name}</span>`
+                            ).join('')}
+                        </div>
+                    `;
+                    container.appendChild(div);
+                }
+            });
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            const totalWinners = Object.values(results).reduce((sum, arr) => sum + arr.length, 0);
+            const totalPrizes = prizeConfig.reduce((sum, prize) => sum + prize.count, 0);
+
+            document.getElementById('stats').textContent =
+                `已抽取: ${totalWinners}/${totalPrizes} 人 | 剩余: ${availableParticipants.length} 人`;
+        }
+
+        // 重置抽奖
+        function resetLottery() {
+            if (!confirm('确定要重置所有抽奖结果吗？')) return;
+
+            availableParticipants = [...allParticipants];
+            results = {};
+            currentPrizeIndex = null;
+            isRolling = false;
+
+            if (rollingInterval) {
+                clearInterval(rollingInterval);
+            }
+
+            document.getElementById('currentPrize').textContent = '请选择奖项';
+            document.getElementById('rollingNames').textContent = '';
+            document.getElementById('startBtn').textContent = '开始抽奖';
+            document.getElementById('startBtn').disabled = true;
+
+            renderPrizeButtons();
+            updateResults();
+            updateStats();
+        }
+
+        // 导出结果
+        function exportResults() {
+            const exportData = {
+                timestamp: new Date().toLocaleString('zh-CN'),
+                totalParticipants: allParticipants.length,
+                results: {}
+            };
+
+            prizeConfig.forEach(prize => {
+                if (results[prize.level]) {
+                    exportData.results[prize.name] = results[prize.level];
+                }
+            });
+
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `抽奖结果_${new Date().getTime()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // 文件上传
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    if (Array.isArray(data) && data.length > 0) {
+                        allParticipants = data;
+                        availableParticipants = [...allParticipants];
+                        results = {};
+                        updateStats();
+                        document.getElementById('fileStatus').textContent =
+                            `✅ 已导入 ${allParticipants.length} 人`;
+                        document.getElementById('fileStatus').style.color = '#2ed573';
+                    } else {
+                        throw new Error('格式错误');
+                    }
+                } catch (error) {
+                    alert('文件格式错误！请上传正确的JSON数组格式。');
+                    document.getElementById('fileStatus').textContent = '❌ 导入失败';
+                    document.getElementById('fileStatus').style.color = '#ff4757';
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        // 页面加载时初始化
+        init();
+    </script>
+</body>
+</html>
